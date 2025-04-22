@@ -8,7 +8,7 @@ from peft import (
     PeftType,
 )
 from trl import SFTConfig,SFTTrainer
-from transformers import TrainingArguments, Trainer, AutoTokenizer, AutoModelForCausalLM, DataCollatorForLanguageModeling
+from transformers import TrainingArguments, Trainer, AutoTokenizer, AutoModelForCausalLM, DataCollatorWithPadding
 
 dataset = load_dataset("json", data_files="output_all_train.json")
 tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-4-9b-chat",trust_remote_code=True)
@@ -51,7 +51,7 @@ trainer = SFTTrainer(
     model=model,
     args=training_args,
     train_dataset=dataset["train"],
-    # data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
+    data_collator=DataCollatorWithPadding(tokenizer),
 )
 
 trainer.train()
