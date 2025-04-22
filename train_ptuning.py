@@ -6,7 +6,7 @@ from peft import get_peft_model, TaskType, PeftConfig, PeftModel, PromptTuningCo
 import torch
 
 # --- 配置 --- #
-MODEL_NAME = "THUDM/chatglm4-9b"  # 确认模型标识符是否准确
+MODEL_NAME = "THUDM/glm-4-9b-chat"  # 确认模型标识符是否准确
 DATA_PATH = "/Users/dxj/Desktop/customer_requirment/glm_PTuning/output_all.json"
 OUTPUT_DIR = "/Users/dxj/Desktop/customer_requirment/glm_PTuning/ptuning_v2_output"
 PEFT_MODEL_ID = "chatglm4-9b-ptuning-v2"
