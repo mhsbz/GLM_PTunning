@@ -7,19 +7,20 @@ from peft import (
     TaskType,
     PeftType,
 )
-from transformers import TrainingArguments, Trainer, AutoTokenizer, AutoModelForCausalLM
+from trl import SFTConfig,SFTTrainer
+from transformers import TrainingArguments, Trainer, AutoTokenizer, AutoModelForCausalLM, DataCollatorForLanguageModeling
 
-dataset = load_dataset("json", data_files="output_all.json")
+dataset = load_dataset("json", data_files="output_all_train.json")
 tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-4-9b-chat",trust_remote_code=True)
 
-def preprocess_function(examples):
-    texts = [q + "答：" + r for q, r in zip(
-        examples["prompt"], 
-        examples["response"]
-    )]
-    return tokenizer(texts, truncation=True, max_length=512)
+# def preprocess_function(examples):
+#     texts = [q + "答：" + r for q, r in zip(
+#         examples["prompt"], 
+#         examples["response"]
+#     )]
+#     return tokenizer(texts, truncation=True, max_length=512)
     
-processed_dataset = dataset.map(preprocess_function, batched=True)
+# processed_dataset = dataset.map(preprocess_function, batched=True)
 
 peft_config = PromptTuningConfig(
     task_type=TaskType.CAUSAL_LM,
@@ -33,7 +34,7 @@ model = AutoModelForCausalLM.from_pretrained("THUDM/glm-4-9b-chat",trust_remote_
 model = get_peft_model(model, peft_config)
 model.print_trainable_parameters()  # 应显示仅提示参数可训练
 
-training_args = TrainingArguments(
+training_args = SFTConfig(
     output_dir="./chatglm-ptuning",
     per_device_train_batch_size=2,
     gradient_accumulation_steps=4,
@@ -41,14 +42,15 @@ training_args = TrainingArguments(
     num_train_epochs=5,
     fp16=True,  # 启用混合精度训练
     logging_steps=50,
+    remove_unused_columns=False
     # save_strategy="epoch",
     # evaluation_strategy="epoch",
 )
 
-trainer = Trainer(
+trainer = SFTTrainer(
     model=model,
     args=training_args,
-    train_dataset=processed_dataset["train"],
+    train_dataset=dataset["train"],
     # data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
 )
 
