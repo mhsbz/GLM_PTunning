@@ -92,7 +92,7 @@ def train_model(model, tokenizer, train_dataset, training_args, peft_config, pef
         formatting_func=formatting_prompts_func, # 使用格式化函数
         peft_config=peft_config, # 将 PEFT 配置传递给 SFTTrainer
         max_seq_length=MAX_SEQ_LENGTH,
-
+        report_to="wandb", 
     )
 
     # 打印可训练参数 (SFTTrainer 应用 PEFT 后)
