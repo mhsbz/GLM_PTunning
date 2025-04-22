@@ -13,14 +13,14 @@ from transformers import TrainingArguments, Trainer, AutoTokenizer, AutoModelFor
 dataset = load_dataset("json", data_files="output_all_train.json")
 tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-4-9b-chat",trust_remote_code=True)
 
-# def preprocess_function(examples):
-#     texts = [q + "答：" + r for q, r in zip(
-#         examples["prompt"], 
-#         examples["response"]
-#     )]
-#     return tokenizer(texts, truncation=True, max_length=512)
+def preprocess_function(examples):
+    texts = [q + "答：" + r for q, r in zip(
+        examples["prompt"], 
+        examples["response"]
+    )]
+    return tokenizer(texts, truncation=True, max_length=512, padding='max_length')
     
-# processed_dataset = dataset.map(preprocess_function, batched=True)
+processed_dataset = dataset.map(preprocess_function, batched=True)
 
 peft_config = PromptTuningConfig(
     task_type=TaskType.CAUSAL_LM,
@@ -50,7 +50,7 @@ training_args = SFTConfig(
 trainer = SFTTrainer(
     model=model,
     args=training_args,
-    train_dataset=dataset["train"],
+    train_dataset=processed_dataset,
     data_collator=DataCollatorWithPadding(tokenizer),
 )
 
