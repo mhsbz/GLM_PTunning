@@ -28,8 +28,9 @@ TRAINING_ARGS = TrainingArguments(
     logging_steps=10,
     save_steps=50,
     learning_rate=1e-3,
-    fp16=torch.cuda.is_available(), # 如果有 GPU 且支持 fp16，则开启
+    bf16=torch.cuda.is_available(), # 如果有 GPU 且支持 fp16，则开启
     remove_unused_columns=False, # SFTTrainer 可能需要保留原始列
+    report_to="wandb", 
 )
 
 MAX_SEQ_LENGTH = 512 # 最大序列长度
@@ -85,18 +86,18 @@ def train_model(model, tokenizer, train_dataset, training_args, peft_config, pef
 
     trainer = SFTTrainer(
         model=model,
-        tokenizer=tokenizer,
+        # tokenizer=tokenizer,
         args=training_args,
         train_dataset=train_dataset,
 
         formatting_func=formatting_prompts_func, # 使用格式化函数
         peft_config=peft_config, # 将 PEFT 配置传递给 SFTTrainer
-        max_seq_length=MAX_SEQ_LENGTH,
-        report_to="wandb", 
+        # max_seq_length=MAX_SEQ_LENGTH,
+       
     )
 
     # 打印可训练参数 (SFTTrainer 应用 PEFT 后)
-    model.print_trainable_parameters()
+    # model.print_trainable_parameters()
 
     print("开始使用 SFTTrainer 进行训练...")
     trainer.train()
