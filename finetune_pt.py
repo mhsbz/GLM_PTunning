@@ -1,8 +1,8 @@
 import json
 import os
 from datasets import Dataset
-from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments # Removed Trainer, DataCollatorForSeq2Seq
-from peft import get_peft_model, PromptTuningConfig, TaskType, PeftModel
+from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments
+from peft import PromptTuningConfig, TaskType
 import torch
 from trl import SFTTrainer # Added SFTTrainer
 
@@ -16,8 +16,6 @@ PEFT_MODEL_DIR = "./chatglm4-pt-adapter" # PEFT adapter 输出目录
 PROMPT_TUNING_CONFIG = PromptTuningConfig(
     task_type=TaskType.CAUSAL_LM, # 任务类型为因果语言模型
     num_virtual_tokens=10, # 虚拟 token 的数量
-    # prompt_tuning_init=PromptTuningInit.TEXT, # 初始化方式，可选
-    # prompt_tuning_init_text="Your init text here", # 初始化文本，如果选择 TEXT 初始化
     tokenizer_name_or_path=MODEL_NAME
 )
 
@@ -51,12 +49,6 @@ def load_and_prepare_data(data_path):
         dataset = Dataset.from_dict(dataset_dict)
     return dataset
 
-def format_example(example, tokenizer):
-    """格式化单个样本用于 SFTTrainer"""
-    # 构建输入文本，格式通常为 prompt + response + eos_token
-    # SFTTrainer 会自动处理 tokenization 和 label 创建
-    return f"{example['prompt']}\n{example['response']}{tokenizer.eos_token}"
-
 # --- 模型加载与配置 ---
 def setup_model(model_name, peft_config):
     """加载预训练模型和 tokenizer，并应用 PEFT 配置"""
@@ -75,9 +67,7 @@ def setup_model(model_name, peft_config):
         # device_map="auto" # 自动分配设备, SFTTrainer 可能需要手动处理
     )
 
-    # 应用 Prompt Tuning (SFTTrainer 也可以在初始化时接收 peft_config)
-    # model = get_peft_model(model, peft_config)
-    # model.print_trainable_parameters() # SFTTrainer 会处理这个
+
     return tokenizer, model
 
 # --- 训练 ---
@@ -98,11 +88,11 @@ def train_model(model, tokenizer, train_dataset, training_args, peft_config, pef
         tokenizer=tokenizer,
         args=training_args,
         train_dataset=train_dataset,
-        # dataset_text_field="text", # 如果数据集中有 'text' 列
+
         formatting_func=formatting_prompts_func, # 使用格式化函数
         peft_config=peft_config, # 将 PEFT 配置传递给 SFTTrainer
         max_seq_length=MAX_SEQ_LENGTH,
-        # data_collator=None, # SFTTrainer 会处理 data collation
+
     )
 
     # 打印可训练参数 (SFTTrainer 应用 PEFT 后)
@@ -112,9 +102,7 @@ def train_model(model, tokenizer, train_dataset, training_args, peft_config, pef
     trainer.train()
     print("训练完成！")
 
-    # 保存 PEFT adapter (SFTTrainer 会自动处理)
-    # trainer.save_model(peft_model_dir) # SFTTrainer 的保存方法
-    # 使用 PEFT 的标准保存方法，确保与加载逻辑一致
+
     print(f"保存 PEFT adapter 到 {peft_model_dir}...")
     model.save_pretrained(peft_model_dir)
     tokenizer.save_pretrained(peft_model_dir) # 同时保存 tokenizer 配置
