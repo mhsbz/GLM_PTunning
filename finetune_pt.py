@@ -6,7 +6,7 @@ from peft import get_peft_model, PromptTuningConfig, TaskType, PeftModel
 import torch
 
 # --- 配置参数 ---
-MODEL_NAME = "THUDM/chatglm3-6b"  # 预训练模型名称或路径 (请根据实际情况修改为 ChatGLM4-9B 的正确标识符)
+MODEL_NAME = "THUDM/glm-4-9b-chat"  # 预训练模型名称或路径 (请根据实际情况修改为 ChatGLM4-9B 的正确标识符)
 DATA_PATH = "output_all.json"  # 训练数据路径
 OUTPUT_DIR = "./chatglm4-pt-output"  # 微调后模型输出目录
 PEFT_MODEL_DIR = "./chatglm4-pt-adapter" # PEFT adapter 输出目录
