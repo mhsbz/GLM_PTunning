@@ -6,7 +6,7 @@ from peft import get_peft_model, PrefixTuningConfig, TaskType
 
 def main():
     # 加载模型和分词器
-    model_name = "THUDM/glm-4-9b-chat"
+    model_name = "Qwen/Qwen2.5-7B-Instruct"
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
@@ -18,7 +18,7 @@ def main():
     config = PrefixTuningConfig(task_type=TaskType.CAUSAL_LM, num_virtual_tokens=10, prefix_projection=False)
     
     # 应用 LoRA
-    model = get_peft_model(model, lora_config)
+    model = get_peft_model(model, config)
 
     # 检测CUDA可用性
     if torch.cuda.is_available():
